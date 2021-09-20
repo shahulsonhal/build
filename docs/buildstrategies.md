@@ -6,36 +6,36 @@ SPDX-License-Identifier: Apache-2.0
 
 # BuildStrategies
 
-- [Overview](#overview)
-- [Available ClusterBuildStrategies](#available-clusterbuildstrategies)
-- [Available BuildStrategies](#available-buildstrategies)
-- [Buildah](#buildah)
-  - [Installing Buildah Strategy](#installing-buildah-strategy)
-- [Buildpacks v3](#buildpacks-v3)
-  - [Installing Buildpacks v3 Strategy](#installing-buildpacks-v3-strategy)
-- [Kaniko](#kaniko)
-  - [Installing Kaniko Strategy](#installing-kaniko-strategy)
-  - [Scanning with Trivy](#scanning-with-trivy)
-- [BuildKit](#buildkit)
-  - [Cache Exporters](#cache-exporters)
-  - [Known Limitations](#known-limitations)
-  - [Usage in Clusters with Pod Security Standards](#usage-in-clusters-with-pod-security-standards)
-  - [Installing BuildKit Strategy](#installing-buildkit-strategy)
-- [ko](#ko)
-  - [Installing ko Strategy](#installing-ko-strategy)
-  - [Parameters](#parameters)
-- [Source to Image](#source-to-image)
-  - [Installing Source to Image Strategy](#installing-source-to-image-strategy)
-  - [Build Steps](#build-steps)
-- [Strategy parameters](#strategy-parameters)
-- [System parameters](#system-parameters)
-- [System parameters vs Strategy Parameters Comparison](#system-parameters-vs-strategy-parameters-comparison)
-- [System results](#system-results)
-- [Steps Resource Definition](#steps-resource-definition)
-  - [Strategies with different resources](#strategies-with-different-resources)
-  - [How does Tekton Pipelines handle resources](#how-does-tekton-pipelines-handle-resources)
-  - [Examples of Tekton resources management](#examples-of-tekton-resources-management)
-- [Annotations](#annotations)
+  - [Overview](#overview)
+  - [Available ClusterBuildStrategies](#available-clusterbuildstrategies)
+  - [Available BuildStrategies](#available-buildstrategies)
+  - [Buildah](#buildah)
+    - [Installing Buildah Strategy](#installing-buildah-strategy)
+  - [Buildpacks v3](#buildpacks-v3)
+    - [Installing Buildpacks v3 Strategy](#installing-buildpacks-v3-strategy)
+  - [Kaniko](#kaniko)
+    - [Installing Kaniko Strategy](#installing-kaniko-strategy)
+      - [Scanning with Trivy](#scanning-with-trivy)
+  - [BuildKit](#buildkit)
+    - [Cache Exporters](#cache-exporters)
+    - [Known Limitations](#known-limitations)
+    - [Usage in Clusters with Pod Security Standards](#usage-in-clusters-with-pod-security-standards)
+    - [Installing BuildKit Strategy](#installing-buildkit-strategy)
+  - [ko](#ko)
+    - [Installing ko Strategy](#installing-ko-strategy)
+    - [Parameters](#parameters)
+  - [Source to Image](#source-to-image)
+    - [Installing Source to Image Strategy](#installing-source-to-image-strategy)
+    - [Build Steps](#build-steps)
+  - [Strategy parameters](#strategy-parameters)
+  - [System parameters](#system-parameters)
+  - [System parameters vs Strategy Parameters Comparison](#system-parameters-vs-strategy-parameters-comparison)
+  - [System results](#system-results)
+  - [Steps Resource Definition](#steps-resource-definition)
+    - [Strategies with different resources](#strategies-with-different-resources)
+    - [How does Tekton Pipelines handle resources](#how-does-tekton-pipelines-handle-resources)
+    - [Examples of Tekton resources management](#examples-of-tekton-resources-management)
+  - [Annotations](#annotations)
 
 ## Overview
 
@@ -277,7 +277,7 @@ Contrary to the strategy `spec.parameters`, you can use system parameters and th
 
 ## System results
 
-You can optionally store the size and digest of the image your build strategy created to some files. This information will eventually be made available in the status of the BuildRun.
+You can optionally store the size and digest of the image your build strategy created to some files.
 
 | Result file                        | Description                                     |
 | ---------------------------------- | ----------------------------------------------- |
@@ -285,6 +285,20 @@ You can optionally store the size and digest of the image your build strategy cr
 | `$(results.shp-image-size.path)`   | File to store the compressed size of the image. |
 
 You can look at sample build strategies, such as [Kaniko](../samples/buildstrategy/kaniko/buildstrategy_kaniko_cr.yaml), or [Buildpacks](../samples/buildstrategy/buildpacks-v3/buildstrategy_buildpacks-v3_cr.yaml), to see how they fill some or all of the results files.
+
+This information will be available in the `.status.output` field of the BuildRun.
+
+```yaml
+apiVersion: shipwright.io/v1alpha1
+kind: BuildRun
+# [...]
+status:
+ # [...]
+  output:
+    digest: sha256:07626e3c7fdd28d5328a8d6df8d29cd3da760c7f5e2070b534f9b880ed093a53
+    size: "1989004"
+  # [...]
+```
 
 ## Steps Resource Definition
 
