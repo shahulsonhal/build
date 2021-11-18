@@ -7,6 +7,7 @@ package resources
 import (
 	"context"
 	"fmt"
+
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	"knative.dev/pkg/apis"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -124,12 +125,14 @@ func UpdateBuildRunUsingTaskRunCondition(ctx context.Context, client client.Clie
 		}
 	}
 
+	lastTransitionTime := metav1.Now()
+
 	buildRun.Status.SetCondition(&buildv1alpha1.Condition{
-		LastTransitionTime: metav1.Now(),
+		LastTransitionTime: &lastTransitionTime,
 		Type:               buildv1alpha1.Succeeded,
 		Status:             status,
-		Reason:             reason,
-		Message:            message,
+		Reason:             &reason,
+		Message:            &message,
 	})
 
 	return nil
@@ -142,11 +145,11 @@ func UpdateConditionWithFalseStatus(ctx context.Context, client client.Client, b
 	now := metav1.Now()
 	buildRun.Status.CompletionTime = &now
 	buildRun.Status.SetCondition(&buildv1alpha1.Condition{
-		LastTransitionTime: now,
+		LastTransitionTime: &now,
 		Type:               buildv1alpha1.Succeeded,
 		Status:             corev1.ConditionFalse,
-		Reason:             reason,
-		Message:            errorMessage,
+		Reason:             &reason,
+		Message:            &errorMessage,
 	})
 	ctxlog.Debug(ctx, "updating buildRun status", namespace, buildRun.Namespace, name, buildRun.Name, "reason", reason)
 	if err := client.Status().Update(ctx, buildRun); err != nil {

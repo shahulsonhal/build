@@ -25,16 +25,14 @@ func AmendTaskSpecWithSources(
 	case build.Spec.Source.BundleContainer != nil:
 		sources.AppendBundleStep(cfg, taskSpec, build.Spec.Source, defaultSourceName)
 
-	case build.Spec.Source.URL != "":
+	case build.Spec.Source.URL != nil:
 		sources.AppendGitStep(cfg, taskSpec, build.Spec.Source, defaultSourceName)
 	}
 
 	// create the step for spec.sources, this will eventually change into different steps depending on the type of the source
-	if build.Spec.Sources != nil {
-		for _, source := range *build.Spec.Sources {
-			// today, we only have HTTP sources
-			sources.AppendHTTPStep(cfg, taskSpec, source)
-		}
+	for _, source := range build.Spec.Sources {
+		// today, we only have HTTP sources
+		sources.AppendHTTPStep(cfg, taskSpec, source)
 	}
 }
 
@@ -45,7 +43,7 @@ func updateBuildRunStatusWithSourceResult(buildrun *buildv1alpha1.BuildRun, resu
 	case buildSpec.Source.BundleContainer != nil:
 		sources.AppendBundleResult(buildrun, defaultSourceName, results)
 
-	case buildSpec.Source.URL != "":
+	case buildSpec.Source.URL != nil:
 		sources.AppendGitResult(buildrun, defaultSourceName, results)
 	}
 

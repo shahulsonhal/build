@@ -14,6 +14,7 @@ import (
 	"github.com/shipwright-io/build/pkg/reconciler/buildrun/resources"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -28,36 +29,34 @@ type Strategy struct {
 // that the referenced strategy exists. This applies to both
 // namespaced or cluster scoped strategies
 func (s Strategy) ValidatePath(ctx context.Context) error {
-	if s.Build.Spec.Strategy != nil {
-		buildStrategy := &build.BuildStrategy{}
-		if s.Build.Spec.Strategy.Kind != nil {
-			switch *s.Build.Spec.Strategy.Kind {
-			case build.NamespacedBuildStrategyKind:
-				if err := s.validateBuildStrategy(ctx, s.Build.Spec.Strategy.Name, buildStrategy); err != nil {
-					return err
-				}
-				if err := s.validateBuildParams(buildStrategy.Spec.Parameters); err != nil {
-					return err
-				}
-			case build.ClusterBuildStrategyKind:
-				clusterBuildStrategy := &build.ClusterBuildStrategy{}
-				if err := s.validateClusterBuildStrategy(ctx, s.Build.Spec.Strategy.Name, clusterBuildStrategy); err != nil {
-					return err
-				}
-				if err := s.validateBuildParams(clusterBuildStrategy.Spec.Parameters); err != nil {
-					return err
-				}
-			default:
-				return fmt.Errorf("unknown strategy kind: %v", *s.Build.Spec.Strategy.Kind)
-			}
-		} else {
-			ctxlog.Info(ctx, "buildStrategy kind is nil, use default NamespacedBuildStrategyKind", namespace, s.Build.Namespace, name, s.Build.Name)
+	buildStrategy := &build.BuildStrategy{}
+	if s.Build.Spec.Strategy.Kind != nil {
+		switch *s.Build.Spec.Strategy.Kind {
+		case build.NamespacedBuildStrategyKind:
 			if err := s.validateBuildStrategy(ctx, s.Build.Spec.Strategy.Name, buildStrategy); err != nil {
 				return err
 			}
 			if err := s.validateBuildParams(buildStrategy.Spec.Parameters); err != nil {
 				return err
 			}
+		case build.ClusterBuildStrategyKind:
+			clusterBuildStrategy := &build.ClusterBuildStrategy{}
+			if err := s.validateClusterBuildStrategy(ctx, s.Build.Spec.Strategy.Name, clusterBuildStrategy); err != nil {
+				return err
+			}
+			if err := s.validateBuildParams(clusterBuildStrategy.Spec.Parameters); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("unknown strategy kind: %v", *s.Build.Spec.Strategy.Kind)
+		}
+	} else {
+		ctxlog.Info(ctx, "buildStrategy kind is nil, use default NamespacedBuildStrategyKind", namespace, s.Build.Namespace, name, s.Build.Name)
+		if err := s.validateBuildStrategy(ctx, s.Build.Spec.Strategy.Name, buildStrategy); err != nil {
+			return err
+		}
+		if err := s.validateBuildParams(buildStrategy.Spec.Parameters); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -67,8 +66,8 @@ func (s Strategy) validateBuildStrategy(ctx context.Context, strategyName string
 	if err := s.Client.Get(ctx, types.NamespacedName{Name: strategyName, Namespace: s.Build.Namespace}, buildStrategy); err != nil && !apierrors.IsNotFound(err) {
 		return err
 	} else if apierrors.IsNotFound(err) {
-		s.Build.Status.Reason = build.BuildStrategyNotFound
-		s.Build.Status.Message = fmt.Sprintf("buildStrategy %s does not exist in namespace %s", s.Build.Spec.Strategy.Name, s.Build.Namespace)
+		s.Build.Status.Reason = build.BuildReasonPtr(build.BuildStrategyNotFound)
+		s.Build.Status.Message = pointer.StringPtr(fmt.Sprintf("buildStrategy %s does not exist in namespace %s", s.Build.Spec.Strategy.Name, s.Build.Namespace))
 	}
 
 	return nil
@@ -78,8 +77,8 @@ func (s Strategy) validateClusterBuildStrategy(ctx context.Context, strategyName
 	if err := s.Client.Get(ctx, types.NamespacedName{Name: strategyName}, clusterBuildStrategy); err != nil && !apierrors.IsNotFound(err) {
 		return err
 	} else if apierrors.IsNotFound(err) {
-		s.Build.Status.Reason = build.ClusterBuildStrategyNotFound
-		s.Build.Status.Message = fmt.Sprintf("clusterBuildStrategy %s does not exist", s.Build.Spec.Strategy.Name)
+		s.Build.Status.Reason = build.BuildReasonPtr(build.ClusterBuildStrategyNotFound)
+		s.Build.Status.Message = pointer.StringPtr(fmt.Sprintf("clusterBuildStrategy %s does not exist", s.Build.Spec.Strategy.Name))
 	}
 	return nil
 }
@@ -110,8 +109,8 @@ func (s Strategy) validateParamsNamesDefinition() {
 	}
 
 	if len(undesiredParams) > 0 {
-		s.Build.Status.Reason = build.RestrictedParametersInUse
-		s.Build.Status.Message = fmt.Sprintf("restricted parameters in use: %s", strings.Join(undesiredParams, ","))
+		s.Build.Status.Reason = build.BuildReasonPtr(build.RestrictedParametersInUse)
+		s.Build.Status.Message = pointer.StringPtr(fmt.Sprintf("restricted parameters in use: %s", strings.Join(undesiredParams, ",")))
 	}
 }
 
@@ -132,7 +131,7 @@ func (s Strategy) validateParamsInStrategies(params []build.ParamValue, paramete
 	}
 
 	if len(undefinedParams) > 0 {
-		s.Build.Status.Reason = build.UndefinedParameter
-		s.Build.Status.Message = fmt.Sprintf("parameter not defined in the strategies: %s", strings.Join(undefinedParams, ","))
+		s.Build.Status.Reason = build.BuildReasonPtr(build.UndefinedParameter)
+		s.Build.Status.Message = pointer.StringPtr(fmt.Sprintf("parameter not defined in the strategies: %s", strings.Join(undefinedParams, ",")))
 	}
 }

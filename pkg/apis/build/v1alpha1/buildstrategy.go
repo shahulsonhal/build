@@ -38,7 +38,7 @@ type Parameter struct {
 
 	// Reasonable default value for the parameter
 	// +optional
-	Default *string `json:"default"`
+	Default *string `json:"default,omitempty"`
 }
 
 // BuildStep defines a partial step that needs to run in container for
@@ -65,7 +65,7 @@ type Strategy struct {
 
 	// API version of the referent
 	// +optional
-	APIVersion string `json:"apiVersion,omitempty"`
+	APIVersion *string `json:"apiVersion,omitempty"`
 }
 
 // BuilderStrategy defines the common elements of build strategies
