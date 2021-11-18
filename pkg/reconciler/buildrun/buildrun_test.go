@@ -175,7 +175,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					&taskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "Succeeded",
+						Reason: pointer.StringPtr("Succeeded"),
 						Status: corev1.ConditionTrue,
 					},
 					corev1.ConditionTrue,
@@ -245,19 +245,6 @@ var _ = Describe("Reconcile BuildRun", func() {
 				Expect(serviceAccount.Name).To(Equal(buildRunSample.Name))
 				Expect(serviceAccount.Namespace).To(Equal(buildRunSample.Namespace))
 			})
-
-			It("should not panic in case the build spec strategy is nil", func() {
-				// As long as the Strategy is a pointer, it can happen that the
-				// field is nil. During processing, the BuildSpec is copied
-				// from the respective Build. In case Strategy is nil, the
-				// controller should not panic.
-				buildRunSample.Status.BuildSpec.Strategy = nil
-				Expect(func() {
-					result, err := reconciler.Reconcile(taskRunRequest)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(result).ToNot(BeNil())
-				}).ShouldNot(Panic())
-			})
 		})
 
 		Context("from an existing TaskRun with Conditions", func() {
@@ -284,7 +271,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					&taskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "Pending",
+						Reason: pointer.StringPtr("Pending"),
 						Status: corev1.ConditionUnknown,
 					},
 					corev1.ConditionUnknown,
@@ -314,7 +301,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					&taskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "Running",
+						Reason: pointer.StringPtr("Running"),
 						Status: corev1.ConditionUnknown,
 					},
 					corev1.ConditionUnknown,
@@ -341,7 +328,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					&taskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "Succeeded",
+						Reason: pointer.StringPtr("Succeeded"),
 						Status: corev1.ConditionTrue,
 					},
 					corev1.ConditionTrue,
@@ -360,7 +347,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 			It("should recognize the BuildRun is canceled", func() {
 				// set cancel
 				buildRunSampleCopy := buildRunSample.DeepCopy()
-				buildRunSampleCopy.Spec.State = build.BuildRunStateCancel
+				buildRunSampleCopy.Spec.State = build.BuildRunRequestedStatePtr(build.BuildRunStateCancel)
 
 				taskRunSample = ctl.DefaultTaskRunWithStatus(taskRunName, buildRunName, ns, corev1.ConditionUnknown, "Running")
 
@@ -383,7 +370,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					switch v := object.(type) {
 					case *build.BuildRun:
 						c := v.Status.GetCondition(build.Succeeded)
-						if c != nil && c.Reason == build.BuildRunStateCancel && c.Status == corev1.ConditionFalse {
+						if c != nil && *c.Reason == build.BuildRunStateCancel && c.Status == corev1.ConditionFalse {
 							cancelUpdateCalled = true
 						}
 
@@ -436,7 +423,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					&taskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "something bad happened",
+						Reason: pointer.StringPtr("something bad happened"),
 						Status: corev1.ConditionFalse,
 					},
 					corev1.ConditionFalse,
@@ -552,7 +539,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 			It("should recognize the BuildRun is canceled even with TaskRun missing", func() {
 				// set cancel
 				buildRunSampleCopy := buildRunSample.DeepCopy()
-				buildRunSampleCopy.Spec.State = build.BuildRunStateCancel
+				buildRunSampleCopy.Spec.State = build.BuildRunRequestedStatePtr(build.BuildRunStateCancel)
 
 				client.GetCalls(ctl.StubBuildCRDs(
 					buildSample,
@@ -568,7 +555,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					switch v := object.(type) {
 					case *build.BuildRun:
 						c := v.Status.GetCondition(build.Succeeded)
-						if c != nil && c.Reason == build.BuildRunStateCancel {
+						if c != nil && *c.Reason == build.BuildRunStateCancel {
 							cancelUpdateCalled = true
 						}
 
@@ -663,7 +650,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					emptyTaskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "ServiceAccountNotFound",
+						Reason: pointer.StringPtr("ServiceAccountNotFound"),
 						Status: corev1.ConditionFalse,
 					},
 					corev1.ConditionFalse,
@@ -727,7 +714,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					emptyTaskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "BuildStrategyNotFound",
+						Reason: pointer.StringPtr("BuildStrategyNotFound"),
 						Status: corev1.ConditionFalse,
 					},
 					corev1.ConditionFalse,
@@ -795,7 +782,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					emptyTaskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "ClusterBuildStrategyNotFound",
+						Reason: pointer.StringPtr("ClusterBuildStrategyNotFound"),
 						Status: corev1.ConditionFalse,
 					},
 					corev1.ConditionFalse,
@@ -860,7 +847,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					emptyTaskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "UnknownStrategyKind",
+						Reason: pointer.StringPtr("UnknownStrategyKind"),
 						Status: corev1.ConditionFalse,
 					},
 					corev1.ConditionFalse,
@@ -918,7 +905,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					emptyTaskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "BuildStrategyNotFound",
+						Reason: pointer.StringPtr("BuildStrategyNotFound"),
 						Status: corev1.ConditionFalse,
 					},
 					corev1.ConditionFalse,
@@ -955,7 +942,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					emptyTaskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "SetOwnerReferenceFailed",
+						Reason: pointer.StringPtr("SetOwnerReferenceFailed"),
 						Status: corev1.ConditionFalse,
 					},
 					corev1.ConditionFalse,
@@ -1055,7 +1042,7 @@ var _ = Describe("Reconcile BuildRun", func() {
 					emptyTaskRunName,
 					build.Condition{
 						Type:   build.Succeeded,
-						Reason: "BuildRegistrationFailed",
+						Reason: pointer.StringPtr("BuildRegistrationFailed"),
 						Status: corev1.ConditionFalse,
 					},
 					corev1.ConditionFalse,
@@ -1072,8 +1059,8 @@ var _ = Describe("Reconcile BuildRun", func() {
 
 			It("delays creation if the registered status of the build is not yet set", func() {
 				buildSample = ctl.DefaultBuild(buildName, strategyName, build.ClusterBuildStrategyKind)
-				buildSample.Status.Registered = ""
-				buildSample.Status.Reason = ""
+				buildSample.Status.Registered = build.ConditionStatusPtr("")
+				buildSample.Status.Reason = build.BuildReasonPtr("")
 
 				client.GetCalls(ctl.StubBuildRunGetWithoutSA(buildSample, buildRunSample))
 

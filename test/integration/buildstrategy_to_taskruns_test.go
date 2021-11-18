@@ -260,8 +260,8 @@ var _ = Describe("Integration tests BuildStrategies and TaskRuns", func() {
 			buildObject, err = tb.GetBuildTillValidation(buildObject.Name)
 			Expect(err).To(BeNil())
 
-			Expect(buildObject.Status.Reason).To(Equal(v1alpha1.RestrictedParametersInUse))
-			Expect(buildObject.Status.Message).To(ContainSubstring("restricted parameters in use"))
+			Expect(*buildObject.Status.Reason).To(Equal(v1alpha1.RestrictedParametersInUse))
+			Expect(*buildObject.Status.Message).To(ContainSubstring("restricted parameters in use"))
 		})
 
 		It("fails the Build due to the definition of an undefined param in the strategy", func() {
@@ -280,8 +280,8 @@ var _ = Describe("Integration tests BuildStrategies and TaskRuns", func() {
 			buildObject, err = tb.GetBuildTillValidation(buildObject.Name)
 			Expect(err).To(BeNil())
 
-			Expect(buildObject.Status.Reason).To(Equal(v1alpha1.UndefinedParameter))
-			Expect(buildObject.Status.Message).To(ContainSubstring("parameter not defined in the strategies"))
+			Expect(*buildObject.Status.Reason).To(Equal(v1alpha1.UndefinedParameter))
+			Expect(*buildObject.Status.Message).To(ContainSubstring("parameter not defined in the strategies"))
 		})
 
 		It("allows a user to set an empty string on parameter without default", func() {
