@@ -112,6 +112,10 @@ generate:
 verify-codegen: generate
 	@hack/verify-generate.sh
 
+.PHONY: verify-controller-gen
+verify-controller-gen: generate-crds
+	@hack/verify-controller-gen.sh
+
 ginkgo:
 ifeq (, $(shell which ginkgo))
 	@{ \

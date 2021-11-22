@@ -40,4 +40,5 @@ jobs:
       run: |
         make -C $GOPATH/src/github.com/shipwright-io/build \
           sanity-check \
-          verify-codegen
+          verify-codegen \
+          verify-controller-gen

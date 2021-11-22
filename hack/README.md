@@ -18,3 +18,4 @@ This directory contains several scripts useful in the development process of Shi
 - `release.sh` Creates a new release of Shipwright Build.
 - `update-codegen.sh` Updates auto-generated client libraries.
 - `verify-codegen.sh` Verifies that auto-generated client libraries are up-to-date.
+- `verify-controller-gen.sh` Verifies if a developer has forgot to run the `make generate-crds`
