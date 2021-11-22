@@ -155,7 +155,7 @@ type Image struct {
 	Labels map[string]string `json:"labels,omitempty"`
 }
 
-// BuildStatus defines the observed state of Build
+// BuildStatus defines the observed state of Build test test
 type BuildStatus struct {
 	// The Register status of the Build
 	// +optional
