@@ -109,7 +109,7 @@ generate:
 	hack/generate-copyright.sh
 
 .PHONY: verify-codegen
-verify-codegen: generate
+verify-codegen: generate generate-crds
 	@hack/verify-generate.sh
 
 ginkgo:

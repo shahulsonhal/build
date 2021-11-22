@@ -39,5 +39,4 @@ jobs:
         GOPATH: "/home/runner/work/build/build/go"
       run: |
         make -C $GOPATH/src/github.com/shipwright-io/build \
-          sanity-check \
           verify-codegen
